@@ -1,0 +1,32 @@
+# .deckhand.yaml
+
+# The image adds uv to the base image (dockerfile is granted).
+dockerfile: .deckhand/Dockerfile
+
+# Project rules from docs/design-discussion.md (no game assets, synthetic fixtures, checks).
+instructions: .deckhand/instructions.md
+
+# Install the locked dependencies once the project has them. A run starts with a clean clone,
+# so .venv is rebuilt from the cache.
+setup: |
+  set -euo pipefail
+  if [ -f uv.lock ]; then uv sync --locked
+  elif [ -f pyproject.toml ]; then uv sync
+  fi
+
+# uv's downloads (numpy and the mesh libraries) and the Pythons it installs, kept between runs.
+caches:
+  - /home/node/.cache/uv
+  - /home/node/.local/share/uv/python
+
+# Review each pull request when it turns ready; requested changes start up to 3 fix runs.
+# The review waits for GitHub Actions first; a failing run starts a CI fix run instead.
+review:
+  on: ready
+  fix: 3
+  ci: wait
+
+# Comments on these pinned issues are filed as ideas or bug reports.
+inbox:
+  ideas: 3
+  bugs: 4
